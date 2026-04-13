@@ -1,0 +1,114 @@
+.bw-vjs-2-dimensions {
+    width: 1920px;
+    height: auto !important; 
+    aspect-ratio: 16 / 9;
+}
+
+.bw-cta-wrap {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+    height: 100%;
+}
+
+.vjs-modal-dialog {
+  position: absolute;
+  top: 50% !important;
+  left: 50% !important;
+  height: calc(100% + 6em) !important;
+  margin: -3em inherit;
+  overflow: scroll;
+  max-width: 600px;
+  max-height: 600px;
+  transform: translate(-50%, -50%);
+  background: #fff !important;
+  border-radius: 5px;   
+  border: solid 1px #00000073;
+  box-shadow: 0 0 30px 0px #00000075;
+}
+.video-js .vjs-control.vjs-close-button {
+    color: #000 !important; 
+} 
+.vjs-modal-dialog .vjs-modal-dialog-content  {
+    color: #000 !important;     
+}
+/* CTA Box */
+.bw-cta {
+  padding: 14px 16px;
+  text-align: center;
+  border-radius: .5em;
+  background-color: rgba(43, 51, 63, .7);
+  color: #fff;
+  max-width: 320px;
+  backdrop-filter: blur(6px);
+  border: .06666em solid #fff;
+  opacity: .75;
+ transition: all .4s;
+}
+.bw-cta:hover {
+  border: solid 1px rgba(255, 255, 255, 1);
+  opacity: .95;
+}    
+
+.bw-cta h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.bw-cta p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.video-js .bw-cta__btn {
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #000;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px ;
+  transition: all .4s;
+}
+.video-js .bw-cta__btn:hover {
+  background: rgba(255, 255, 255, 1);
+ }
+
+
+
+.bw-cta__btns{
+  display:flex;
+  gap:10px;
+  flex-direction: column;
+}
+
+@media (max-width: 600px) {
+    .bw-cta-wrap {
+        padding-top: 0;
+        padding-bottom:2em:
+    }
+    .bw-cta {
+        border: solid 2px rgba(255, 255, 255, 1);
+        opacity: .95;
+}    
+
+    .video-js .bw-cta__btn {
+      font-size: 12px;
+      background: #fff;
+    }
+    .bw-cta__btns{
+      display:flex;
+      gap:10px;
+      flex-direction: row;
+    }
+}
+    
+.bw-cta__btn{
+  text-align:center;
+  white-space:nowrap;
+}
