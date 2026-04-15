@@ -22,6 +22,8 @@ class BW_VideoJS_Hotspot_Player {
 		add_action( 'add_meta_boxes',               [ $this, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT,       [ $this, 'save_meta' ] );
 		add_shortcode( 'bw_video',                  [ $this, 'shortcode_video' ] );
+		add_filter( 'manage_' . self::CPT . '_posts_columns', [ $this, 'add_shortcode_column' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ $this, 'render_shortcode_column' ], 10, 2 );
 	}
 
 	public static function on_activate() {
@@ -122,6 +124,26 @@ class BW_VideoJS_Hotspot_Player {
 	public function add_meta_boxes() {
 		add_meta_box( 'bw_video_settings', 'Video-Einstellungen', [ $this, 'render_settings_box' ], self::CPT, 'normal', 'high' );
 		add_meta_box( 'bw_video_hotspots', 'Hotspots',            [ $this, 'render_hotspots_box' ], self::CPT, 'normal', 'default' );
+	}
+
+	public function add_shortcode_column( $columns ) {
+		$new_columns = [];
+		foreach ( $columns as $key => $label ) {
+			$new_columns[ $key ] = $label;
+			if ( $key === 'title' ) {
+				$new_columns['bw_shortcode'] = 'Shortcode';
+			}
+		}
+		if ( ! isset( $new_columns['bw_shortcode'] ) ) {
+			$new_columns['bw_shortcode'] = 'Shortcode';
+		}
+		return $new_columns;
+	}
+
+	public function render_shortcode_column( $column, $post_id ) {
+		if ( $column !== 'bw_shortcode' ) return;
+		$shortcode = sprintf( '[bw_video id="%d"]', (int) $post_id );
+		echo '<code>' . esc_html( $shortcode ) . '</code>';
 	}
 
 	public function render_settings_box( $post ) {
