@@ -230,10 +230,10 @@ class BW_VideoJS_Hotspot_Player {
 
 	private function render_hotspot_row( $idx, array $hs ) {
 		$action   = $hs['action']  ?? 'modal';
-		$label    = $hs['label']   ?? '';
+		$label    = $this->decode_unicode_escapes( (string) ( $hs['label'] ?? '' ) );
 		$x        = isset( $hs['x'] ) ? $hs['x'] : '';
 		$y        = isset( $hs['y'] ) ? $hs['y'] : '';
-		$content  = $hs['content'] ?? '';
+		$content  = $this->decode_unicode_escapes( (string) ( $hs['content'] ?? '' ) );
 		$url      = $hs['url']     ?? '';
 		$is_modal = ( $action !== 'link' && $action !== 'iframe' );
 		?>
@@ -289,11 +289,14 @@ class BW_VideoJS_Hotspot_Player {
 				if ( ! is_array( $hs ) ) continue;
 				$action  = sanitize_key( $hs['action'] ?? '' );
 				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
-				$label   = sanitize_text_field( $hs['label'] ?? '' );
+				$label_raw   = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['label'] ?? '' ) ) );
+				$content_raw = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['content'] ?? '' ) ) );
+				$url_raw     = wp_unslash( (string) ( $hs['url'] ?? '' ) );
+				$label   = sanitize_text_field( $label_raw );
 				$x       = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
 				$y       = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
-				$content = ( $action === 'modal' ) ? wp_kses_post( $hs['content'] ?? '' ) : '';
-				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '';
+				$content = ( $action === 'modal' ) ? wp_kses_post( $content_raw ) : '';
+				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $url_raw ) : '';
 				if ( $action === 'modal'  && $content === '' ) continue;
 				if ( $action === 'link'   && $url     === '' ) continue;
 				if ( $action === 'iframe' && $url     === '' ) continue;
@@ -301,6 +304,20 @@ class BW_VideoJS_Hotspot_Player {
 			}
 		}
 		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+	}
+
+	private function decode_unicode_escapes( $value ) {
+		$value = (string) $value;
+		if ( strpos( $value, '\\u' ) === false ) return $value;
+		return preg_replace_callback(
+			'/\\\\u([0-9a-fA-F]{4})/',
+			static function ( $matches ) {
+				$codepoint = hexdec( $matches[1] );
+				if ( function_exists( 'mb_chr' ) ) return mb_chr( $codepoint, 'UTF-8' );
+				return html_entity_decode( '&#x' . $matches[1] . ';', ENT_QUOTES, 'UTF-8' );
+			},
+			$value
+		);
 	}
 
 	public function register_assets() {
