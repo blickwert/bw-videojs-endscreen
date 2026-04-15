@@ -3,7 +3,10 @@
     height: auto !important; 
     aspect-ratio: 16 / 9;
 }
-
+.bw-modal-content .col {
+    columns: 2;
+    column-gap: 1em;
+}
 .bw-cta-wrap {
     padding-top: 2em;
     padding-bottom: 2em;
@@ -193,4 +196,8 @@
     font-weight: inherit !important;
     font-style: inherit !important;
     font-family: inherit !important;    
+    height: 100%;
 }
+
+.video-js .bw-modal-content iframe {
+    border:0;
