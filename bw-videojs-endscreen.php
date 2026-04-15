@@ -144,11 +144,21 @@ class BW_VideoJS_Hotspot_Player {
 		<table class="form-table" style="width:100%;">
 			<tr>
 				<th style="width:220px;"><label for="bw_mp4">MP4 <small>(URL oder Attachment-ID)</small></label></th>
-				<td><input type="text" id="bw_mp4" name="bw_mp4" value="<?php echo esc_attr( $mp4 ); ?>" class="large-text" /></td>
+				<td>
+					<div class="bw-media-field">
+						<input type="text" id="bw_mp4" name="bw_mp4" value="<?php echo esc_attr( $mp4 ); ?>" class="large-text" />
+						<button type="button" class="button bw-media-select" data-target="#bw_mp4" data-media-type="video">Medienauswahl</button>
+					</div>
+				</td>
 			</tr>
 			<tr>
 				<th><label for="bw_poster">Poster <small>(URL oder Attachment-ID)</small></label></th>
-				<td><input type="text" id="bw_poster" name="bw_poster" value="<?php echo esc_attr( $poster ); ?>" class="large-text" /></td>
+				<td>
+					<div class="bw-media-field">
+						<input type="text" id="bw_poster" name="bw_poster" value="<?php echo esc_attr( $poster ); ?>" class="large-text" />
+						<button type="button" class="button bw-media-select" data-target="#bw_poster" data-media-type="image">Medienauswahl</button>
+					</div>
+				</td>
 			</tr>
 			<tr>
 				<th><label for="bw_hotspots_on">Hotspots anzeigen bei</label></th>
@@ -291,6 +301,7 @@ class BW_VideoJS_Hotspot_Player {
 		$base_dir = plugin_dir_path( __FILE__ );
 		$base_url = plugins_url( '', __FILE__ );
 		$ver = file_exists( $base_dir . '/assets/js/bw-admin-hotspots.js' ) ? filemtime( $base_dir . '/assets/js/bw-admin-hotspots.js' ) : self::VERSION;
+		wp_enqueue_media();
 		wp_enqueue_script( 'bw-admin-hotspots', $base_url . '/assets/js/bw-admin-hotspots.js', [ 'jquery' ], $ver, true );
 		wp_add_inline_style( 'wp-admin', $this->admin_inline_css() );
 	}
@@ -305,6 +316,8 @@ class BW_VideoJS_Hotspot_Player {
 			.bw-drag-handle { cursor:move; color:#aaa; flex-shrink:0; }
 			.bw-remove-hotspot { margin-left:auto !important; flex-shrink:0; }
 			.bw-field-content textarea, .bw-field-url input[type="url"] { width:100%; box-sizing:border-box; }
+			.bw-media-field { display:flex; align-items:center; gap:8px; }
+			.bw-media-field .large-text { flex:1; min-width:260px; }
 		';
 	}
 
