@@ -235,7 +235,10 @@ class BW_VideoJS_Hotspot_Player {
 		$y        = isset( $hs['y'] ) ? $hs['y'] : '';
 		$content  = (string) ( $hs['content'] ?? '' );
 		$url      = $hs['url']     ?? '';
-		$is_modal = ( $action !== 'link' && $action !== 'iframe' );
+		$is_modal = ( $action === 'modal' );
+		$is_audio = ( $action === 'audio' );
+		$url_input_id   = 'bw_hotspot_url_' . $idx;
+		$audio_input_id = 'bw_hotspot_audio_' . $idx;
 		?>
 		<div class="bw-hotspot-row">
 			<div class="bw-hotspot-row__header">
@@ -245,6 +248,7 @@ class BW_VideoJS_Hotspot_Player {
 					<option value="modal"  <?php selected( $action, 'modal' );  ?>>Modal</option>
 					<option value="link"   <?php selected( $action, 'link' );   ?>>Link</option>
 					<option value="iframe" <?php selected( $action, 'iframe' ); ?>>iFrame</option>
+					<option value="audio"  <?php selected( $action, 'audio' );  ?>>Audio</option>
 				</select>
 				<label class="bw-pos-label">X&nbsp;%
 					<input type="number" name="bw_hotspots[<?php echo $idx; ?>][x]" value="<?php echo esc_attr( $x ); ?>" placeholder="0" min="0" max="100" step="0.1" class="small-text" />
@@ -257,8 +261,14 @@ class BW_VideoJS_Hotspot_Player {
 			<div class="bw-field-content"<?php echo $is_modal ? '' : ' style="display:none"'; ?>>
 				<textarea name="bw_hotspots[<?php echo $idx; ?>][content]" rows="4" placeholder="Inhalt (HTML erlaubt, z.B. <p>Text</p>)"><?php echo esc_textarea( $content ); ?></textarea>
 			</div>
-			<div class="bw-field-url"<?php echo $is_modal ? ' style="display:none"' : ''; ?>>
-				<input type="url" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
+			<div class="bw-field-url"<?php echo ( $is_modal || $is_audio ) ? ' style="display:none"' : ''; ?>>
+				<input id="<?php echo esc_attr( $url_input_id ); ?>" type="url" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
+			</div>
+			<div class="bw-field-audio"<?php echo $is_audio ? '' : ' style="display:none"'; ?>>
+				<div class="bw-media-field">
+					<input id="<?php echo esc_attr( $audio_input_id ); ?>" type="text" class="large-text" name="bw_hotspots[<?php echo $idx; ?>][audio_url]" value="<?php echo esc_attr( $url ); ?>" placeholder="Audio-URL oder Attachment-ID" />
+					<button type="button" class="button bw-media-select" data-target="#<?php echo esc_attr( $audio_input_id ); ?>" data-media-type="audio">Audio ausw&auml;hlen</button>
+				</div>
 			</div>
 		</div>
 		<?php
@@ -288,18 +298,21 @@ class BW_VideoJS_Hotspot_Player {
 			foreach ( $raw as $hs ) {
 				if ( ! is_array( $hs ) ) continue;
 				$action  = sanitize_key( $hs['action'] ?? '' );
-				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
+				if ( ! in_array( $action, [ 'modal', 'link', 'iframe', 'audio' ], true ) ) continue;
 				$label_raw   = wp_unslash( (string) ( $hs['label'] ?? '' ) );
 				$content_raw = wp_unslash( (string) ( $hs['content'] ?? '' ) );
 				$url_raw     = wp_unslash( (string) ( $hs['url'] ?? '' ) );
+				$audio_raw   = wp_unslash( (string) ( $hs['audio_url'] ?? '' ) );
 				$label   = sanitize_text_field( $label_raw );
 				$x       = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
 				$y       = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
 				$content = ( $action === 'modal' ) ? wp_kses_post( $content_raw ) : '';
 				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $url_raw ) : '';
+				if ( $action === 'audio' ) $url = sanitize_text_field( $audio_raw !== '' ? $audio_raw : $url_raw );
 				if ( $action === 'modal'  && $content === '' ) continue;
 				if ( $action === 'link'   && $url     === '' ) continue;
 				if ( $action === 'iframe' && $url     === '' ) continue;
+				if ( $action === 'audio'  && $url     === '' ) continue;
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url' );
 			}
 		}
@@ -414,6 +427,10 @@ class BW_VideoJS_Hotspot_Player {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
 				$out[] = [ 'action' => 'modal', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
+			} elseif ( $action === 'audio' ) {
+				$audio = $this->resolve_media( $area['url'] ?? '', 'file' );
+				if ( $audio === '' ) continue;
+				$out[] = [ 'action' => 'modal', 'modal_content' => '<audio controls preload="metadata" style="width:100%;"><source src="' . esc_url( $audio ) . '" type="audio/mpeg"></audio>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
 			}
 		}
 		return $out;
