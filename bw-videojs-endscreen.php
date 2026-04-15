@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.0.2
+ * Version: 2.0.0
  * Author: Blickwert Graz
  */
 
@@ -22,8 +22,6 @@ class BW_VideoJS_Hotspot_Player {
 		add_action( 'add_meta_boxes',               [ $this, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT,       [ $this, 'save_meta' ] );
 		add_shortcode( 'bw_video',                  [ $this, 'shortcode_video' ] );
-		add_filter( 'manage_' . self::CPT . '_posts_columns', [ $this, 'add_shortcode_column' ] );
-		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ $this, 'render_shortcode_column' ], 10, 2 );
 	}
 
 	public static function on_activate() {
@@ -95,7 +93,7 @@ class BW_VideoJS_Hotspot_Player {
 					];
 				}
 			}
-			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
 		}
 
 		update_option( 'bw_video_cpt_seeded_v1', true );
@@ -124,26 +122,6 @@ class BW_VideoJS_Hotspot_Player {
 	public function add_meta_boxes() {
 		add_meta_box( 'bw_video_settings', 'Video-Einstellungen', [ $this, 'render_settings_box' ], self::CPT, 'normal', 'high' );
 		add_meta_box( 'bw_video_hotspots', 'Hotspots',            [ $this, 'render_hotspots_box' ], self::CPT, 'normal', 'default' );
-	}
-
-	public function add_shortcode_column( $columns ) {
-		$new_columns = [];
-		foreach ( $columns as $key => $label ) {
-			$new_columns[ $key ] = $label;
-			if ( $key === 'title' ) {
-				$new_columns['bw_shortcode'] = 'Shortcode';
-			}
-		}
-		if ( ! isset( $new_columns['bw_shortcode'] ) ) {
-			$new_columns['bw_shortcode'] = 'Shortcode';
-		}
-		return $new_columns;
-	}
-
-	public function render_shortcode_column( $column, $post_id ) {
-		if ( $column !== 'bw_shortcode' ) return;
-		$shortcode = sprintf( '[bw_video id="%d"]', (int) $post_id );
-		echo '<code>' . esc_html( $shortcode ) . '</code>';
 	}
 
 	public function render_settings_box( $post ) {
@@ -217,10 +195,10 @@ class BW_VideoJS_Hotspot_Player {
 			<?php endforeach; ?>
 		</div>
 		<p style="margin-top:10px;">
-			<button type="button" id="bw-add-hotspot" class="button button-secondary">+ Hotspot hinzuf&uuml;gen</button>
+			<button type="button" id="bw-add-hotspot" class="button button-secondary">+ Hotspot hinzufügen</button>
 		</p>
 		<p style="color:#666;font-style:italic;font-size:12px;margin-top:4px;">
-			X = horizontale Position (links-&gt;rechts), Y = vertikale Position (oben-&gt;unten), jeweils in Prozent.
+			X = horizontale Position (links→rechts), Y = vertikale Position (oben→unten), jeweils in Prozent.
 		</p>
 		<script type="text/html" id="bw-hotspot-template">
 			<?php $this->render_hotspot_row( '__IDX__', [] ); ?>
@@ -230,25 +208,21 @@ class BW_VideoJS_Hotspot_Player {
 
 	private function render_hotspot_row( $idx, array $hs ) {
 		$action   = $hs['action']  ?? 'modal';
-		$label    = (string) ( $hs['label'] ?? '' );
+		$label    = $hs['label']   ?? '';
 		$x        = isset( $hs['x'] ) ? $hs['x'] : '';
 		$y        = isset( $hs['y'] ) ? $hs['y'] : '';
-		$content  = (string) ( $hs['content'] ?? '' );
+		$content  = $hs['content'] ?? '';
 		$url      = $hs['url']     ?? '';
-		$is_modal = ( $action === 'modal' );
-		$is_audio = ( $action === 'audio' );
-		$url_input_id   = 'bw_hotspot_url_' . $idx;
-		$audio_input_id = 'bw_hotspot_audio_' . $idx;
+		$is_modal = ( $action !== 'link' && $action !== 'iframe' );
 		?>
 		<div class="bw-hotspot-row">
 			<div class="bw-hotspot-row__header">
 				<span class="dashicons dashicons-move bw-drag-handle" title="Ziehen zum Sortieren"></span>
-				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $label ); ?>" placeholder="Label / &Uuml;berschrift" class="bw-hs-label" />
+				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $label ); ?>" placeholder="Label / Überschrift" class="bw-hs-label" />
 				<select name="bw_hotspots[<?php echo $idx; ?>][action]" class="bw-action-select">
 					<option value="modal"  <?php selected( $action, 'modal' );  ?>>Modal</option>
 					<option value="link"   <?php selected( $action, 'link' );   ?>>Link</option>
 					<option value="iframe" <?php selected( $action, 'iframe' ); ?>>iFrame</option>
-					<option value="audio"  <?php selected( $action, 'audio' );  ?>>Audio</option>
 				</select>
 				<label class="bw-pos-label">X&nbsp;%
 					<input type="number" name="bw_hotspots[<?php echo $idx; ?>][x]" value="<?php echo esc_attr( $x ); ?>" placeholder="0" min="0" max="100" step="0.1" class="small-text" />
@@ -261,14 +235,8 @@ class BW_VideoJS_Hotspot_Player {
 			<div class="bw-field-content"<?php echo $is_modal ? '' : ' style="display:none"'; ?>>
 				<textarea name="bw_hotspots[<?php echo $idx; ?>][content]" rows="4" placeholder="Inhalt (HTML erlaubt, z.B. <p>Text</p>)"><?php echo esc_textarea( $content ); ?></textarea>
 			</div>
-			<div class="bw-field-url"<?php echo ( $is_modal || $is_audio ) ? ' style="display:none"' : ''; ?>>
-				<input id="<?php echo esc_attr( $url_input_id ); ?>" type="url" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
-			</div>
-			<div class="bw-field-audio"<?php echo $is_audio ? '' : ' style="display:none"'; ?>>
-				<div class="bw-media-field">
-					<input id="<?php echo esc_attr( $audio_input_id ); ?>" type="text" class="large-text" name="bw_hotspots[<?php echo $idx; ?>][audio_url]" value="<?php echo esc_attr( $url ); ?>" placeholder="Audio-URL oder Attachment-ID" />
-					<button type="button" class="button bw-media-select" data-target="#<?php echo esc_attr( $audio_input_id ); ?>" data-media-type="audio">Audio ausw&auml;hlen</button>
-				</div>
+			<div class="bw-field-url"<?php echo $is_modal ? ' style="display:none"' : ''; ?>>
+				<input type="url" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
 			</div>
 		</div>
 		<?php
@@ -298,25 +266,19 @@ class BW_VideoJS_Hotspot_Player {
 			foreach ( $raw as $hs ) {
 				if ( ! is_array( $hs ) ) continue;
 				$action  = sanitize_key( $hs['action'] ?? '' );
-				if ( ! in_array( $action, [ 'modal', 'link', 'iframe', 'audio' ], true ) ) continue;
-				$label_raw   = wp_unslash( (string) ( $hs['label'] ?? '' ) );
-				$content_raw = wp_unslash( (string) ( $hs['content'] ?? '' ) );
-				$url_raw     = wp_unslash( (string) ( $hs['url'] ?? '' ) );
-				$audio_raw   = wp_unslash( (string) ( $hs['audio_url'] ?? '' ) );
-				$label   = sanitize_text_field( $label_raw );
+				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
+				$label   = sanitize_text_field( $hs['label'] ?? '' );
 				$x       = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
 				$y       = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
-				$content = ( $action === 'modal' ) ? wp_kses_post( $content_raw ) : '';
-				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $url_raw ) : '';
-				if ( $action === 'audio' ) $url = sanitize_text_field( $audio_raw !== '' ? $audio_raw : $url_raw );
+				$content = ( $action === 'modal' ) ? wp_kses_post( $hs['content'] ?? '' ) : '';
+				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '';
 				if ( $action === 'modal'  && $content === '' ) continue;
 				if ( $action === 'link'   && $url     === '' ) continue;
 				if ( $action === 'iframe' && $url     === '' ) continue;
-				if ( $action === 'audio'  && $url     === '' ) continue;
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url' );
 			}
 		}
-		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
 	}
 
 	public function register_assets() {
@@ -386,7 +348,7 @@ class BW_VideoJS_Hotspot_Player {
 		wp_enqueue_script( 'videojs' ); wp_enqueue_script( 'bw-videojs-init' );
 
 		$id_attr      = wp_unique_id( 'bw-vjs-' );
-		$areas_json   = esc_attr( wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
+		$areas_json   = esc_attr( wp_json_encode( $hotspots ) );
 		$wrap_classes = [ 'bw-vjs-wrap' ];
 		$extra_class  = trim( (string) $atts['class'] );
 		if ( $extra_class !== '' ) $wrap_classes[] = sanitize_html_class( $extra_class );
@@ -427,10 +389,6 @@ class BW_VideoJS_Hotspot_Player {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
 				$out[] = [ 'action' => 'modal', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
-			} elseif ( $action === 'audio' ) {
-				$audio = $this->resolve_media( $area['url'] ?? '', 'file' );
-				if ( $audio === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => '<audio controls preload="metadata" style="width:100%;"><source src="' . esc_url( $audio ) . '" type="audio/mpeg"></audio>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
 			}
 		}
 		return $out;
