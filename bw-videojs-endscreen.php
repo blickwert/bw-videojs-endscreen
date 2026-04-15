@@ -22,6 +22,8 @@ class BW_VideoJS_Hotspot_Player {
 		add_action( 'add_meta_boxes',               [ $this, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT,       [ $this, 'save_meta' ] );
 		add_shortcode( 'bw_video',                  [ $this, 'shortcode_video' ] );
+		add_filter( 'manage_' . self::CPT . '_posts_columns', [ $this, 'add_shortcode_column' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ $this, 'render_shortcode_column' ], 10, 2 );
 	}
 
 	public static function on_activate() {
@@ -124,6 +126,26 @@ class BW_VideoJS_Hotspot_Player {
 		add_meta_box( 'bw_video_hotspots', 'Hotspots',            [ $this, 'render_hotspots_box' ], self::CPT, 'normal', 'default' );
 	}
 
+	public function add_shortcode_column( $columns ) {
+		$new_columns = [];
+		foreach ( $columns as $key => $label ) {
+			$new_columns[ $key ] = $label;
+			if ( $key === 'title' ) {
+				$new_columns['bw_shortcode'] = 'Shortcode';
+			}
+		}
+		if ( ! isset( $new_columns['bw_shortcode'] ) ) {
+			$new_columns['bw_shortcode'] = 'Shortcode';
+		}
+		return $new_columns;
+	}
+
+	public function render_shortcode_column( $column, $post_id ) {
+		if ( $column !== 'bw_shortcode' ) return;
+		$shortcode = sprintf( '[bw_video id="%d"]', (int) $post_id );
+		echo '<code>' . esc_html( $shortcode ) . '</code>';
+	}
+
 	public function render_settings_box( $post ) {
 		wp_nonce_field( 'bw_video_meta_save', 'bw_video_nonce' );
 
@@ -208,10 +230,10 @@ class BW_VideoJS_Hotspot_Player {
 
 	private function render_hotspot_row( $idx, array $hs ) {
 		$action   = $hs['action']  ?? 'modal';
-		$label    = $hs['label']   ?? '';
+		$label    = $this->decode_unicode_escapes( (string) ( $hs['label'] ?? '' ) );
 		$x        = isset( $hs['x'] ) ? $hs['x'] : '';
 		$y        = isset( $hs['y'] ) ? $hs['y'] : '';
-		$content  = $hs['content'] ?? '';
+		$content  = $this->decode_unicode_escapes( (string) ( $hs['content'] ?? '' ) );
 		$url      = $hs['url']     ?? '';
 		$is_modal = ( $action !== 'link' && $action !== 'iframe' );
 		?>
@@ -267,11 +289,14 @@ class BW_VideoJS_Hotspot_Player {
 				if ( ! is_array( $hs ) ) continue;
 				$action  = sanitize_key( $hs['action'] ?? '' );
 				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
-				$label   = sanitize_text_field( $hs['label'] ?? '' );
+				$label_raw   = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['label'] ?? '' ) ) );
+				$content_raw = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['content'] ?? '' ) ) );
+				$url_raw     = wp_unslash( (string) ( $hs['url'] ?? '' ) );
+				$label   = sanitize_text_field( $label_raw );
 				$x       = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
 				$y       = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
-				$content = ( $action === 'modal' ) ? wp_kses_post( $hs['content'] ?? '' ) : '';
-				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '';
+				$content = ( $action === 'modal' ) ? wp_kses_post( $content_raw ) : '';
+				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $url_raw ) : '';
 				if ( $action === 'modal'  && $content === '' ) continue;
 				if ( $action === 'link'   && $url     === '' ) continue;
 				if ( $action === 'iframe' && $url     === '' ) continue;
@@ -279,6 +304,20 @@ class BW_VideoJS_Hotspot_Player {
 			}
 		}
 		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+	}
+
+	private function decode_unicode_escapes( $value ) {
+		$value = (string) $value;
+		if ( strpos( $value, '\\u' ) === false ) return $value;
+		return preg_replace_callback(
+			'/\\\\u([0-9a-fA-F]{4})/',
+			static function ( $matches ) {
+				$codepoint = hexdec( $matches[1] );
+				if ( function_exists( 'mb_chr' ) ) return mb_chr( $codepoint, 'UTF-8' );
+				return html_entity_decode( '&#x' . $matches[1] . ';', ENT_QUOTES, 'UTF-8' );
+			},
+			$value
+		);
 	}
 
 	public function register_assets() {
