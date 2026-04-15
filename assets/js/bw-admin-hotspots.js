@@ -19,10 +19,8 @@ jQuery( function ( $ ) {
 		var $row    = $( this ).closest( '.bw-hotspot-row' );
 		var action  = $( this ).val();
 		var isModal = ( action === 'modal' );
-		var isAudio = ( action === 'audio' );
 		$row.find( '.bw-field-content' ).toggle( isModal );
-		$row.find( '.bw-field-url' ).toggle( ! isModal && ! isAudio );
-		$row.find( '.bw-field-audio' ).toggle( isAudio );
+		$row.find( '.bw-field-url' ).toggle( ! isModal );
 	} );
 
 	$( document ).on( 'click', '.bw-media-select', function () {
