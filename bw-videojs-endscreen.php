@@ -217,10 +217,10 @@ class BW_VideoJS_Hotspot_Player {
 			<?php endforeach; ?>
 		</div>
 		<p style="margin-top:10px;">
-			<button type="button" id="bw-add-hotspot" class="button button-secondary">+ Hotspot hinzufügen</button>
+			<button type="button" id="bw-add-hotspot" class="button button-secondary">+ Hotspot hinzuf&uuml;gen</button>
 		</p>
 		<p style="color:#666;font-style:italic;font-size:12px;margin-top:4px;">
-			X = horizontale Position (links→rechts), Y = vertikale Position (oben→unten), jeweils in Prozent.
+			X = horizontale Position (links-&gt;rechts), Y = vertikale Position (oben-&gt;unten), jeweils in Prozent.
 		</p>
 		<script type="text/html" id="bw-hotspot-template">
 			<?php $this->render_hotspot_row( '__IDX__', [] ); ?>
@@ -240,7 +240,7 @@ class BW_VideoJS_Hotspot_Player {
 		<div class="bw-hotspot-row">
 			<div class="bw-hotspot-row__header">
 				<span class="dashicons dashicons-move bw-drag-handle" title="Ziehen zum Sortieren"></span>
-				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $label ); ?>" placeholder="Label / Überschrift" class="bw-hs-label" />
+				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $label ); ?>" placeholder="Label / &Uuml;berschrift" class="bw-hs-label" />
 				<select name="bw_hotspots[<?php echo $idx; ?>][action]" class="bw-action-select">
 					<option value="modal"  <?php selected( $action, 'modal' );  ?>>Modal</option>
 					<option value="link"   <?php selected( $action, 'link' );   ?>>Link</option>
