@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.0.1
+ * Version: 2.0.2
  * Author: Blickwert Graz
  */
 
@@ -95,7 +95,7 @@ class BW_VideoJS_Hotspot_Player {
 					];
 				}
 			}
-			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 		}
 
 		update_option( 'bw_video_cpt_seeded_v1', true );
@@ -230,10 +230,10 @@ class BW_VideoJS_Hotspot_Player {
 
 	private function render_hotspot_row( $idx, array $hs ) {
 		$action   = $hs['action']  ?? 'modal';
-		$label    = $this->decode_unicode_escapes( (string) ( $hs['label'] ?? '' ) );
+		$label    = (string) ( $hs['label'] ?? '' );
 		$x        = isset( $hs['x'] ) ? $hs['x'] : '';
 		$y        = isset( $hs['y'] ) ? $hs['y'] : '';
-		$content  = $this->decode_unicode_escapes( (string) ( $hs['content'] ?? '' ) );
+		$content  = (string) ( $hs['content'] ?? '' );
 		$url      = $hs['url']     ?? '';
 		$is_modal = ( $action !== 'link' && $action !== 'iframe' );
 		?>
@@ -289,8 +289,8 @@ class BW_VideoJS_Hotspot_Player {
 				if ( ! is_array( $hs ) ) continue;
 				$action  = sanitize_key( $hs['action'] ?? '' );
 				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
-				$label_raw   = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['label'] ?? '' ) ) );
-				$content_raw = $this->decode_unicode_escapes( wp_unslash( (string) ( $hs['content'] ?? '' ) ) );
+				$label_raw   = wp_unslash( (string) ( $hs['label'] ?? '' ) );
+				$content_raw = wp_unslash( (string) ( $hs['content'] ?? '' ) );
 				$url_raw     = wp_unslash( (string) ( $hs['url'] ?? '' ) );
 				$label   = sanitize_text_field( $label_raw );
 				$x       = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
@@ -303,21 +303,7 @@ class BW_VideoJS_Hotspot_Player {
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url' );
 			}
 		}
-		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
-	}
-
-	private function decode_unicode_escapes( $value ) {
-		$value = (string) $value;
-		if ( strpos( $value, '\\u' ) === false ) return $value;
-		return preg_replace_callback(
-			'/\\\\u([0-9a-fA-F]{4})/',
-			static function ( $matches ) {
-				$codepoint = hexdec( $matches[1] );
-				if ( function_exists( 'mb_chr' ) ) return mb_chr( $codepoint, 'UTF-8' );
-				return html_entity_decode( '&#x' . $matches[1] . ';', ENT_QUOTES, 'UTF-8' );
-			},
-			$value
-		);
+		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 	}
 
 	public function register_assets() {
@@ -387,7 +373,7 @@ class BW_VideoJS_Hotspot_Player {
 		wp_enqueue_script( 'videojs' ); wp_enqueue_script( 'bw-videojs-init' );
 
 		$id_attr      = wp_unique_id( 'bw-vjs-' );
-		$areas_json   = esc_attr( wp_json_encode( $hotspots ) );
+		$areas_json   = esc_attr( wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) );
 		$wrap_classes = [ 'bw-vjs-wrap' ];
 		$extra_class  = trim( (string) $atts['class'] );
 		if ( $extra_class !== '' ) $wrap_classes[] = sanitize_html_class( $extra_class );
