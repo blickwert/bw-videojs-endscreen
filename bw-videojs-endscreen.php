@@ -33,6 +33,11 @@ class BW_VideoJS_Hotspot_Player {
 		add_action( 'add_meta_boxes',               [ $this, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT,       [ $this, 'save_meta' ] );
 		add_shortcode( 'bw_video',                  [ $this, 'shortcode_video' ] );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			add_action( 'admin_menu', [ $this, 'register_debug_menu' ] );
+			add_action( 'admin_init', [ $this, 'handle_debug_reseed' ] );
+		}
 	}
 
 	public static function on_activate() {
@@ -93,6 +98,80 @@ class BW_VideoJS_Hotspot_Player {
 		}
 
 		update_option( 'bw_video_seeded_v2', true );
+	}
+
+	public function register_debug_menu() {
+		add_submenu_page(
+			'edit.php?post_type=' . self::CPT,
+			'Demo-Daten',
+			'⚙ Demo-Daten',
+			'manage_options',
+			'bw-video-debug',
+			[ $this, 'render_debug_page' ]
+		);
+	}
+
+	public function render_debug_page() {
+		$seeded  = get_option( 'bw_video_seeded_v2' );
+		$message = isset( $_GET['bw_seed_result'] ) ? (int) $_GET['bw_seed_result'] : null;
+		?>
+		<div class="wrap">
+			<h1>BW Video – Demo-Daten</h1>
+			<p style="color:#d63638"><strong>⚠ Nur sichtbar wenn WP_DEBUG aktiv ist.</strong></p>
+
+			<?php if ( $message !== null ) : ?>
+				<div class="notice notice-success"><p>
+					<?php echo $message > 0
+						? sprintf( '<strong>%d Demo-Video(s)</strong> erfolgreich importiert.', $message )
+						: '<strong>Keine neuen Videos importiert</strong> – JSON leer oder ungültig.'; ?>
+				</p></div>
+			<?php endif; ?>
+
+			<table class="form-table">
+				<tr>
+					<th>Seeding-Status</th>
+					<td><?php echo $seeded ? '<span style="color:green">✔ Bereits ausgeführt</span>' : '<span style="color:orange">○ Noch nicht ausgeführt</span>'; ?></td>
+				</tr>
+				<tr>
+					<th>JSON-Datei</th>
+					<td><code><?php echo esc_html( plugin_dir_path( __FILE__ ) . 'demo/demo-videos.json' ); ?></code><br>
+					<?php echo file_exists( plugin_dir_path( __FILE__ ) . 'demo/demo-videos.json' ) ? '✔ Vorhanden' : '✘ Nicht gefunden'; ?></td>
+				</tr>
+			</table>
+
+			<h2>Demo-Daten neu importieren</h2>
+			<p>Setzt den Seeding-Status zurück und importiert die JSON-Daten erneut. Bestehende Einträge werden <strong>nicht gelöscht</strong>.</p>
+			<form method="post">
+				<?php wp_nonce_field( 'bw_reseed_demo' ); ?>
+				<input type="hidden" name="bw_action" value="reseed">
+				<?php submit_button( 'Demo-Daten jetzt importieren', 'primary' ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	public function handle_debug_reseed() {
+		if (
+			! isset( $_POST['bw_action'] ) ||
+			$_POST['bw_action'] !== 'reseed' ||
+			! current_user_can( 'manage_options' ) ||
+			! check_admin_referer( 'bw_reseed_demo' )
+		) return;
+
+		delete_option( 'bw_video_seeded_v2' );
+
+		$file   = plugin_dir_path( __FILE__ ) . 'demo/demo-videos.json';
+		$videos = file_exists( $file ) ? json_decode( file_get_contents( $file ), true ) : [];
+		$count  = is_array( $videos ) ? count( $videos ) : 0;
+
+		$this->seed_from_json();
+
+		wp_redirect( add_query_arg( [
+			'post_type'       => self::CPT,
+			'page'            => 'bw-video-debug',
+			'bw_seed_result'  => $count,
+		], admin_url( 'edit.php' ) ) );
+		exit;
 	}
 
 	public function register_cpt() {
