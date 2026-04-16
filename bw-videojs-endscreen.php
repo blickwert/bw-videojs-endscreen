@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.5
+ * Version: 2.1.6
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.5';
+	const VERSION = '2.1.6';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -355,7 +355,7 @@ class BW_VideoJS_Hotspot_Player {
 				<textarea name="bw_hotspots[<?php echo $idx; ?>][content]" rows="4" placeholder="Inhalt (HTML erlaubt, z.B. <p>Text</p>)"><?php echo esc_textarea( $content ); ?></textarea>
 			</div>
 			<div class="bw-field-url"<?php echo $is_url ? '' : ' style="display:none"'; ?>>
-				<input type="url" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
+				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
 			</div>
 			<div class="bw-field-audio"<?php echo $is_audio ? '' : ' style="display:none"'; ?>>
 				<div class="bw-media-field">
@@ -438,7 +438,7 @@ class BW_VideoJS_Hotspot_Player {
 			.bw-pos-label { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 			.bw-drag-handle { cursor:move; color:#aaa; flex-shrink:0; }
 			.bw-remove-hotspot { margin-left:auto !important; flex-shrink:0; }
-			.bw-field-content textarea, .bw-field-url input[type="url"] { width:100%; box-sizing:border-box; }
+			.bw-field-content textarea, .bw-field-url input, .bw-field-audio input { width:100%; box-sizing:border-box; }
 			.bw-media-field { display:flex; align-items:center; gap:8px; }
 			.bw-media-field .large-text { flex:1; min-width:260px; }
 		';
