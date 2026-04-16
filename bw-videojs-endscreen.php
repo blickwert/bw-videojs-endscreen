@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.7
+ * Version: 2.1.8
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.7';
+	const VERSION = '2.1.8';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -96,7 +96,7 @@ class BW_VideoJS_Hotspot_Player {
 					'url'     => in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '',
 				];
 			}
-			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE ) );
 		}
 
 		update_option( 'bw_video_seeded_v2', true );
@@ -401,7 +401,7 @@ class BW_VideoJS_Hotspot_Player {
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url', 'audio_url' );
 			}
 		}
-		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+		update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE ) );
 	}
 
 	public function register_assets() {
@@ -478,7 +478,7 @@ class BW_VideoJS_Hotspot_Player {
 		if ( $debug )              $wrap_classes[] = 'bw-vjs-wrap--debug';
 
 		ob_start(); ?>
-		<script type="application/json" id="<?php echo esc_attr( $data_id ); ?>"><?php echo wp_json_encode( $hotspots ); ?></script>
+		<script type="application/json" id="<?php echo esc_attr( $data_id ); ?>"><?php echo wp_json_encode( $hotspots, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG ); ?></script>
 		<div class="<?php echo esc_attr( implode( ' ', array_filter( $wrap_classes ) ) ); ?>" data-video-id="<?php echo esc_attr( $post_id ); ?>">
 			<video id="<?php echo esc_attr( $id_attr ); ?>" class="video-js vjs-default-skin bw-vjs" style="width:100%;" preload="metadata"
 				<?php echo $controls ? 'controls' : ''; ?> <?php echo $autoplay ? 'autoplay' : ''; ?> <?php echo $muted ? 'muted' : ''; ?> <?php echo $playsinline ? 'playsinline' : ''; ?>
