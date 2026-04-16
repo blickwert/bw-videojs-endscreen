@@ -1,0 +1,49 @@
+[
+  {
+    "title": "Demo Video – Hotspot Modal",
+    "mp4": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+    "hotspots_on": "ended",
+    "autoplay": false,
+    "muted": false,
+    "controls": true,
+    "playsinline": true,
+    "fullscreen_on_play": false,
+    "hotspots": [
+      {
+        "action": "modal",
+        "label": "Mehr erfahren",
+        "x": 50,
+        "y": 40,
+        "content": "<h3>Willkommen beim BW Hotspot Player</h3><p>Dieses Modal erscheint wenn der Nutzer auf den Hotspot klickt. Inhalt kann <strong>HTML</strong> enthalten.</p>"
+      },
+      {
+        "action": "link",
+        "label": "Zur Website",
+        "x": 75,
+        "y": 60,
+        "url": "https://blickwert.at"
+      }
+    ]
+  },
+  {
+    "title": "Demo Video – iFrame Overlay",
+    "mp4": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    "poster": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg",
+    "hotspots_on": "pause",
+    "autoplay": false,
+    "muted": true,
+    "controls": true,
+    "playsinline": true,
+    "fullscreen_on_play": false,
+    "hotspots": [
+      {
+        "action": "iframe",
+        "label": "Produktseite",
+        "x": 30,
+        "y": 50,
+        "url": "https://blickwert.at"
+      }
+    ]
+  }
+]

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.0.1
+ * Version: 2.1.0
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.0.1';
+	const VERSION = '2.1.0';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -39,6 +39,60 @@ class BW_VideoJS_Hotspot_Player {
 		$instance = new self();
 		$instance->register_cpt();
 		flush_rewrite_rules();
+		$instance->seed_from_json();
+	}
+
+	private function seed_from_json() {
+		if ( get_option( 'bw_video_seeded_v2' ) ) return;
+
+		$file = plugin_dir_path( __FILE__ ) . 'demo/demo-videos.json';
+		if ( ! file_exists( $file ) ) {
+			update_option( 'bw_video_seeded_v2', true );
+			return;
+		}
+
+		$videos = json_decode( file_get_contents( $file ), true );
+		if ( ! is_array( $videos ) ) {
+			update_option( 'bw_video_seeded_v2', true );
+			return;
+		}
+
+		foreach ( $videos as $video ) {
+			$post_id = wp_insert_post( [
+				'post_type'   => self::CPT,
+				'post_title'  => sanitize_text_field( $video['title'] ?? 'Demo Video' ),
+				'post_status' => 'publish',
+			] );
+
+			if ( is_wp_error( $post_id ) || ! $post_id ) continue;
+
+			update_post_meta( $post_id, '_bw_mp4',               esc_url_raw( $video['mp4']    ?? '' ) );
+			update_post_meta( $post_id, '_bw_poster',            esc_url_raw( $video['poster'] ?? '' ) );
+			update_post_meta( $post_id, '_bw_hotspots_on',       sanitize_key( $video['hotspots_on'] ?? 'ended' ) );
+			update_post_meta( $post_id, '_bw_autoplay',           ! empty( $video['autoplay'] )           ? '1' : '0' );
+			update_post_meta( $post_id, '_bw_muted',              ! empty( $video['muted'] )              ? '1' : '0' );
+			update_post_meta( $post_id, '_bw_controls',           ( $video['controls']    ?? true )       ? '1' : '0' );
+			update_post_meta( $post_id, '_bw_playsinline',        ( $video['playsinline'] ?? true )       ? '1' : '0' );
+			update_post_meta( $post_id, '_bw_fullscreen_on_play', ! empty( $video['fullscreen_on_play'] ) ? '1' : '0' );
+
+			$hotspots = [];
+			foreach ( $video['hotspots'] ?? [] as $hs ) {
+				$action = sanitize_key( $hs['action'] ?? '' );
+				if ( ! in_array( $action, [ 'modal', 'link', 'iframe' ], true ) ) continue;
+
+				$hotspots[] = [
+					'action'  => $action,
+					'label'   => sanitize_text_field( $hs['label'] ?? '' ),
+					'x'       => (float) ( $hs['x'] ?? 0 ),
+					'y'       => (float) ( $hs['y'] ?? 0 ),
+					'content' => $action === 'modal' ? wp_kses_post( $hs['content'] ?? '' ) : '',
+					'url'     => in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '',
+				];
+			}
+			update_post_meta( $post_id, '_bw_hotspots', wp_json_encode( $hotspots ) );
+		}
+
+		update_option( 'bw_video_seeded_v2', true );
 	}
 
 	public function register_cpt() {
