@@ -164,8 +164,9 @@
 
     var player = window.videojs(el.id);
 
+    var dataEl = el.dataset.hotspotsId ? document.getElementById( el.dataset.hotspotsId ) : null;
     var data = {
-      hotspots: el.dataset.hotspots || "[]",
+      hotspots: dataEl ? dataEl.textContent : "[]",
       hotspotsOn: el.dataset.hotspotsOn || "pause-ended",
       debug: el.dataset.debug === "1",
       fullscreenOnPlay: el.dataset.fullscreenOnPlay === "1"

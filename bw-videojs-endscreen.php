@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.6
+ * Version: 2.1.7
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.6';
+	const VERSION = '2.1.7';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -471,18 +471,19 @@ class BW_VideoJS_Hotspot_Player {
 		wp_enqueue_script( 'videojs' ); wp_enqueue_script( 'bw-videojs-init' );
 
 		$id_attr      = wp_unique_id( 'bw-vjs-' );
-		$areas_json   = esc_attr( wp_json_encode( $hotspots ) );
+		$data_id      = $id_attr . '-data';
 		$wrap_classes = [ 'bw-vjs-wrap' ];
 		$extra_class  = trim( (string) $atts['class'] );
 		if ( $extra_class !== '' ) $wrap_classes[] = sanitize_html_class( $extra_class );
 		if ( $debug )              $wrap_classes[] = 'bw-vjs-wrap--debug';
 
 		ob_start(); ?>
+		<script type="application/json" id="<?php echo esc_attr( $data_id ); ?>"><?php echo wp_json_encode( $hotspots ); ?></script>
 		<div class="<?php echo esc_attr( implode( ' ', array_filter( $wrap_classes ) ) ); ?>" data-video-id="<?php echo esc_attr( $post_id ); ?>">
 			<video id="<?php echo esc_attr( $id_attr ); ?>" class="video-js vjs-default-skin bw-vjs" style="width:100%;" preload="metadata"
 				<?php echo $controls ? 'controls' : ''; ?> <?php echo $autoplay ? 'autoplay' : ''; ?> <?php echo $muted ? 'muted' : ''; ?> <?php echo $playsinline ? 'playsinline' : ''; ?>
 				<?php if ( $poster ) : ?>poster="<?php echo esc_url( $poster ); ?>"<?php endif; ?>
-				data-hotspots="<?php echo $areas_json; ?>"
+				data-hotspots-id="<?php echo esc_attr( $data_id ); ?>"
 				data-hotspots-on="<?php echo esc_attr( $hotspots_on ); ?>"
 				data-debug="<?php echo $debug ? '1' : '0'; ?>"
 				data-fullscreen-on-play="<?php echo $fullscreen_on_play ? '1' : '0'; ?>">
