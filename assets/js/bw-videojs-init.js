@@ -61,12 +61,8 @@
       }
 
       el.dataset.index = String(index);
-      var w = Number(area.w) || 0;
-      var h = Number(area.h) || 0;
-      el.style.width  = w + "%";
-      el.style.height = h + "%";
-      el.style.left   = (Number(area.x) - w / 2) + "%";
-      el.style.top    = (Number(area.y) - h / 2) + "%";
+      el.style.left = Number(area.x) + "%";
+      el.style.top  = Number(area.y) + "%";
 
       if (area.label) {
         el.setAttribute("aria-label", area.label);
