@@ -2,8 +2,8 @@ name: Release Plugin ZIP
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   release:
@@ -15,10 +15,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read plugin version
+        id: version
+        run: |
+          VERSION=$(grep -m1 "Version:" bw-videojs-endscreen.php | sed 's/.*Version:[[:space:]]*//' | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if release already exists
+        id: check
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${{ steps.version.outputs.version }}")
+          if [ "$STATUS" = "200" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install Composer dependencies
+        if: steps.check.outputs.exists == 'false'
         run: composer install --no-dev --optimize-autoloader
 
       - name: Create plugin ZIP
+        if: steps.check.outputs.exists == 'false'
         run: |
           mkdir -p /tmp/bw-videojs-endscreen
           rsync -r \
@@ -32,7 +53,10 @@ jobs:
           zip -r bw-videojs-endscreen.zip bw-videojs-endscreen/
 
       - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
           files: /tmp/bw-videojs-endscreen.zip
           generate_release_notes: true
