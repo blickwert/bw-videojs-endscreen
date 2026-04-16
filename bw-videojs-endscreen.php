@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.9
+ * Version: 2.2.0
  * Author: Blickwert Graz
  */
 
@@ -338,7 +338,7 @@ class BW_VideoJS_Hotspot_Player {
 				<span class="dashicons dashicons-move bw-drag-handle" title="Ziehen zum Sortieren"></span>
 				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][label]" value="<?php echo esc_attr( $label ); ?>" placeholder="Label / Überschrift" class="bw-hs-label" />
 				<select name="bw_hotspots[<?php echo $idx; ?>][action]" class="bw-action-select">
-					<option value="modal"  <?php selected( $action, 'modal' );  ?>>Modal</option>
+					<option value="modal"  <?php selected( $action, 'modal' );  ?>>Inhalt</option>
 					<option value="link"   <?php selected( $action, 'link' );   ?>>Link</option>
 					<option value="iframe" <?php selected( $action, 'iframe' ); ?>>iFrame</option>
 					<option value="audio"  <?php selected( $action, 'audio' );  ?>>Audio</option>
@@ -504,21 +504,21 @@ class BW_VideoJS_Hotspot_Player {
 			if ( $action === 'modal' ) {
 				$content = trim( (string) ( $area['content'] ?? '' ) );
 				if ( $content === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y ];
+				$out[] = [ 'action' => 'modal', 'type' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'link' ) {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
-				$out[] = [ 'action' => 'link', 'url' => $url, 'label' => $label, 'x' => $x, 'y' => $y ];
+				$out[] = [ 'action' => 'link', 'type' => 'link', 'url' => $url, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'iframe' ) {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y ];
+				$out[] = [ 'action' => 'modal', 'type' => 'iframe', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'audio' ) {
 				$raw = trim( (string) ( $area['audio_url'] ?? '' ) );
 				if ( $raw === '' ) continue;
 				$src = $this->resolve_media( $raw, 'file' );
 				if ( $src === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => '<div class="bw-audio-player"><audio controls style="width:100%;margin-top:4px"><source src="' . esc_url( $src ) . '"></audio></div>', 'label' => $label, 'x' => $x, 'y' => $y ];
+				$out[] = [ 'action' => 'modal', 'type' => 'audio', 'modal_content' => '<div class="bw-audio-player"><audio controls style="width:100%;margin-top:4px"><source src="' . esc_url( $src ) . '"></audio></div>', 'label' => $label, 'x' => $x, 'y' => $y ];
 			}
 		}
 		return $out;

@@ -46,8 +46,9 @@
           });
       }
 
+      el.classList.add("bw-hotspot--" + (area.type || area.action));
+
       if (isLink) {
-        el.classList.add("bw-hotspot--link");
         el.setAttribute("href", area.url);
 
         if (area.target) el.setAttribute("target", area.target);
@@ -55,9 +56,9 @@
       }
 
       if (isModal) {
-        el.classList.add("bw-hotspot--modal");
         el.setAttribute("type", "button");
         el.dataset.modalContent = area.modal_content;
+        el.dataset.modalLabel = area.label || "";
       }
 
       el.dataset.index = String(index);
@@ -85,10 +86,18 @@
     return wrap;
   }
 
-  function createModalContentEl(html) {
+  function createModalContentEl(html, label) {
     var wrapper = document.createElement("div");
     wrapper.className = "bw-modal-content";
-    wrapper.innerHTML = html;
+    if (label) {
+      var titleEl = document.createElement("h2");
+      titleEl.className = "bw-modal-title";
+      titleEl.textContent = label;
+      wrapper.appendChild(titleEl);
+    }
+    var bodyEl = document.createElement("div");
+    bodyEl.innerHTML = html;
+    wrapper.appendChild(bodyEl);
     return wrapper;
   }
 
@@ -108,7 +117,7 @@
 
         player.pause();
 
-        var contentEl = createModalContentEl(content);
+        var contentEl = createModalContentEl(content, el.dataset.modalLabel || "");
 
         var modal = player.createModal(contentEl, {
           temporary: true,
