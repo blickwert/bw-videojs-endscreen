@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.1
+ * Version: 2.1.2
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.1';
+	const VERSION = '2.1.2';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -33,6 +33,8 @@ class BW_VideoJS_Hotspot_Player {
 		add_action( 'add_meta_boxes',               [ $this, 'add_meta_boxes' ] );
 		add_action( 'save_post_' . self::CPT,       [ $this, 'save_meta' ] );
 		add_shortcode( 'bw_video',                  [ $this, 'shortcode_video' ] );
+		add_filter( 'manage_' . self::CPT . '_posts_columns',       [ $this, 'add_shortcode_column' ] );
+		add_action( 'manage_' . self::CPT . '_posts_custom_column', [ $this, 'render_shortcode_column' ], 10, 2 );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			add_action( 'admin_menu', [ $this, 'register_debug_menu' ] );
@@ -195,8 +197,46 @@ class BW_VideoJS_Hotspot_Player {
 	}
 
 	public function add_meta_boxes() {
-		add_meta_box( 'bw_video_settings', 'Video-Einstellungen', [ $this, 'render_settings_box' ], self::CPT, 'normal', 'high' );
-		add_meta_box( 'bw_video_hotspots', 'Hotspots',            [ $this, 'render_hotspots_box' ], self::CPT, 'normal', 'default' );
+		add_meta_box( 'bw_video_settings',  'Video-Einstellungen', [ $this, 'render_settings_box' ],  self::CPT, 'normal', 'high' );
+		add_meta_box( 'bw_video_hotspots',  'Hotspots',            [ $this, 'render_hotspots_box' ],  self::CPT, 'normal', 'default' );
+		add_meta_box( 'bw_video_shortcode', 'Shortcode',           [ $this, 'render_shortcode_box' ], self::CPT, 'side',   'high' );
+	}
+
+	public function render_shortcode_box( $post ) {
+		$shortcode = '[bw_video id="' . $post->ID . '"]';
+		?>
+		<p style="margin:0 0 6px">Shortcode in Seite/Beitrag einfügen:</p>
+		<input
+			type="text"
+			readonly
+			value="<?php echo esc_attr( $shortcode ); ?>"
+			style="width:100%;font-family:monospace;font-size:12px;cursor:pointer"
+			onclick="this.select();document.execCommand('copy');this.style.background='#d4edda';setTimeout(()=>this.style.background='',1000);"
+			title="Klicken zum Kopieren"
+		>
+		<p style="margin:6px 0 0;color:#666;font-size:11px">→ Klicken kopiert in die Zwischenablage</p>
+		<?php
+	}
+
+	public function add_shortcode_column( $columns ) {
+		$new = [];
+		foreach ( $columns as $key => $label ) {
+			$new[ $key ] = $label;
+			if ( $key === 'title' ) {
+				$new['bw_shortcode'] = 'Shortcode';
+			}
+		}
+		return $new;
+	}
+
+	public function render_shortcode_column( $column, $post_id ) {
+		if ( $column !== 'bw_shortcode' ) return;
+		$shortcode = '[bw_video id="' . $post_id . '"]';
+		echo '<code style="font-size:11px;cursor:pointer" '
+			. 'onclick="navigator.clipboard.writeText(\'' . esc_js( $shortcode ) . '\');this.style.background=\'#d4edda\';setTimeout(()=>this.style.background=\'\',1000)" '
+			. 'title="Klicken zum Kopieren">'
+			. esc_html( $shortcode )
+			. '</code>';
 	}
 
 	public function render_settings_box( $post ) {
