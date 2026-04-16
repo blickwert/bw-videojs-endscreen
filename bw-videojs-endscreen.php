@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.8
+ * Version: 2.1.9
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.8';
+	const VERSION = '2.1.9';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -504,21 +504,21 @@ class BW_VideoJS_Hotspot_Player {
 			if ( $action === 'modal' ) {
 				$content = trim( (string) ( $area['content'] ?? '' ) );
 				if ( $content === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
+				$out[] = [ 'action' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'link' ) {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
-				$out[] = [ 'action' => 'link', 'url' => $url, 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
+				$out[] = [ 'action' => 'link', 'url' => $url, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'iframe' ) {
 				$url = trim( (string) ( $area['url'] ?? '' ) );
 				if ( $url === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
+				$out[] = [ 'action' => 'modal', 'modal_content' => '<iframe src="' . esc_url( $url ) . '" width="100%" height="500" frameborder="0" allowfullscreen></iframe>', 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'audio' ) {
 				$raw = trim( (string) ( $area['audio_url'] ?? '' ) );
 				if ( $raw === '' ) continue;
 				$src = $this->resolve_media( $raw, 'file' );
 				if ( $src === '' ) continue;
-				$out[] = [ 'action' => 'modal', 'modal_content' => '<div class="bw-audio-player"><audio controls style="width:100%;margin-top:4px"><source src="' . esc_url( $src ) . '"></audio></div>', 'label' => $label, 'x' => $x, 'y' => $y, 'w' => 25, 'h' => 12 ];
+				$out[] = [ 'action' => 'modal', 'modal_content' => '<div class="bw-audio-player"><audio controls style="width:100%;margin-top:4px"><source src="' . esc_url( $src ) . '"></audio></div>', 'label' => $label, 'x' => $x, 'y' => $y ];
 			}
 		}
 		return $out;
