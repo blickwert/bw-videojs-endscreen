@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.1.3
+ * Version: 2.1.4
  * Author: Blickwert Graz
  */
 
@@ -23,7 +23,7 @@ register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate'
 
 class BW_VideoJS_Hotspot_Player {
 
-	const VERSION = '2.1.3';
+	const VERSION = '2.1.4';
 	const CPT     = 'bw_video';
 
 	public function __construct() {
@@ -387,9 +387,6 @@ class BW_VideoJS_Hotspot_Player {
 				$y       = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
 				$content = ( $action === 'modal' ) ? wp_kses_post( $hs['content'] ?? '' ) : '';
 				$url     = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '';
-				if ( $action === 'modal'  && $content === '' ) continue;
-				if ( $action === 'link'   && $url     === '' ) continue;
-				if ( $action === 'iframe' && $url     === '' ) continue;
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url' );
 			}
 		}
