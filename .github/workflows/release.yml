@@ -1,0 +1,38 @@
+name: Release Plugin ZIP
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Create plugin ZIP
+        run: |
+          mkdir -p /tmp/bw-videojs-endscreen
+          rsync -r \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='*.zip' \
+            ./ /tmp/bw-videojs-endscreen/
+          cd /tmp
+          zip -r bw-videojs-endscreen.zip bw-videojs-endscreen/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/bw-videojs-endscreen.zip
+          generate_release_notes: true

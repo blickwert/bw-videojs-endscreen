@@ -8,6 +8,17 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+// GitHub Update Checker
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+	$updateChecker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		'https://github.com/blickwert/bw-videojs-endscreen/',
+		__FILE__,
+		'bw-videojs-endscreen'
+	);
+	$updateChecker->getVcsApi()->enableReleaseAssets();
+}
+
 register_activation_hook( __FILE__, [ 'BW_VideoJS_Hotspot_Player', 'on_activate' ] );
 
 class BW_VideoJS_Hotspot_Player {
