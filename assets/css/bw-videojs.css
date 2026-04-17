@@ -58,10 +58,11 @@
   position: absolute;
   inset: 0;
   aspect-ratio: 16 / 9;
-  height: 100%;
   margin: 0 auto;
   z-index: 30;
   pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .bw-hotspots button,
