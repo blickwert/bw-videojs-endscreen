@@ -318,6 +318,16 @@ class BW_VideoJS_Hotspot_Player {
 		<script type="text/html" id="bw-hotspot-template">
 			<?php $this->render_hotspot_row( '__IDX__', [] ); ?>
 		</script>
+		<script>
+		jQuery( function () {
+			document.querySelectorAll( '.bw-hs-content[id]' ).forEach( function ( ta ) {
+				if ( ta.id && ta.id.indexOf( '__IDX__' ) === -1 && typeof quicktags !== 'undefined' ) {
+					quicktags( { id: ta.id, buttons: 'strong,em,link,ul,ol,li,close' } );
+					QTags._buttonsInit();
+				}
+			} );
+		} );
+		</script>
 		<?php
 	}
 
@@ -352,7 +362,7 @@ class BW_VideoJS_Hotspot_Player {
 				<button type="button" class="button bw-remove-hotspot">&#x2715; Entfernen</button>
 			</div>
 			<div class="bw-field-content"<?php echo $is_modal ? '' : ' style="display:none"'; ?>>
-				<textarea name="bw_hotspots[<?php echo $idx; ?>][content]" rows="4" placeholder="Inhalt (HTML erlaubt, z.B. <p>Text</p>)"><?php echo esc_textarea( $content ); ?></textarea>
+				<textarea id="bw_hs_content_<?php echo esc_attr( $idx ); ?>" name="bw_hotspots[<?php echo $idx; ?>][content]" rows="4" placeholder="Inhalt (HTML erlaubt, z.B. <p>Text</p>)" class="bw-hs-content"><?php echo esc_textarea( $content ); ?></textarea>
 			</div>
 			<div class="bw-field-url"<?php echo $is_url ? '' : ' style="display:none"'; ?>>
 				<input type="text" name="bw_hotspots[<?php echo $idx; ?>][url]" value="<?php echo esc_attr( $url ); ?>" placeholder="https://" />
@@ -425,6 +435,7 @@ class BW_VideoJS_Hotspot_Player {
 		$base_url = plugins_url( '', __FILE__ );
 		$ver = file_exists( $base_dir . '/assets/js/bw-admin-hotspots.js' ) ? filemtime( $base_dir . '/assets/js/bw-admin-hotspots.js' ) : self::VERSION;
 		wp_enqueue_media();
+		wp_enqueue_script( 'quicktags' );
 		wp_enqueue_script( 'bw-admin-hotspots', $base_url . '/assets/js/bw-admin-hotspots.js', [ 'jquery' ], $ver, true );
 		wp_add_inline_style( 'wp-admin', $this->admin_inline_css() );
 	}

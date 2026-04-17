@@ -6,8 +6,13 @@ jQuery( function ( $ ) {
 	var rowIndex = $list.find( '.bw-hotspot-row' ).length;
 
 	$( '#bw-add-hotspot' ).on( 'click', function () {
-		var html = template.replace( /__IDX__/g, String( rowIndex ) );
+		var idx  = String( rowIndex );
+		var html = template.replace( /__IDX__/g, idx );
 		$list.append( html );
+		if ( typeof quicktags !== 'undefined' ) {
+			quicktags( { id: 'bw_hs_content_' + idx, buttons: 'strong,em,link,ul,ol,li,close' } );
+			QTags._buttonsInit();
+		}
 		rowIndex++;
 	} );
 
