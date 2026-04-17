@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BW Video.js Hotspot Player
  * Description: Video.js Player mit klickbaren Hotspots. Verwaltung via Custom Post Type.
- * Version: 2.2.2
+ * Version: 2.2.3
  * Author: Blickwert Graz
  */
 
