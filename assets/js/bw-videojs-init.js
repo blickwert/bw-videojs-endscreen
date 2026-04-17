@@ -105,7 +105,7 @@
     var wrap = player.el().querySelector(".bw-hotspots");
     if (!wrap) return;
 
-    wrap.querySelectorAll(".bw-hotspot--modal").forEach(function (el) {
+    wrap.querySelectorAll("[data-modal-content]").forEach(function (el) {
       if (el.dataset.bound === "1") return;
       el.dataset.bound = "1";
 
