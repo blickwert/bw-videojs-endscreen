@@ -52,7 +52,13 @@
   columns: 2;
   column-gap: 1em;
 }
-
+.bw-modal-title {
+    font-size: 24px;
+    line-height: 1.8em;
+}
+.bw-modal-text {
+    
+}
 /* ── Hotspots overlay ───────────────────────────────────────── */
 .bw-hotspots {
   position: absolute;
@@ -63,6 +69,7 @@
   pointer-events: none;
   top: 50%;
   transform: translateY(-50%);
+  height: 100%;
 }
 
 .bw-hotspots button,
