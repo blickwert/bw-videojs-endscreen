@@ -513,7 +513,7 @@ class BW_VideoJS_Hotspot_Player {
 			$x      = (float) ( $area['x'] ?? 0 );
 			$y      = (float) ( $area['y'] ?? 0 );
 			if ( $action === 'modal' ) {
-				$content = nl2br( trim( (string) ( $area['content'] ?? '' ) ) );
+				$content = wpautop( trim( (string) ( $area['content'] ?? '' ) ) );
 				if ( $content === '' ) continue;
 				$out[] = [ 'action' => 'modal', 'type' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'link' ) {
