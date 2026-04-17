@@ -405,7 +405,7 @@ class BW_VideoJS_Hotspot_Player {
 				$label     = sanitize_text_field( $hs['label'] ?? '' );
 				$x         = min( 100.0, max( 0.0, (float) ( $hs['x'] ?? 0 ) ) );
 				$y         = min( 100.0, max( 0.0, (float) ( $hs['y'] ?? 0 ) ) );
-				$content   = ( $action === 'modal' ) ? wp_kses_post( $hs['content'] ?? '' ) : '';
+				$content   = ( $action === 'modal' ) ? wp_kses_post( str_replace( [ "\r\n", "\r" ], "\n", $hs['content'] ?? '' ) ) : '';
 				$url       = in_array( $action, [ 'link', 'iframe' ], true ) ? esc_url_raw( $hs['url'] ?? '' ) : '';
 				$audio_url = ( $action === 'audio' ) ? sanitize_text_field( $hs['audio_url'] ?? '' ) : '';
 				$hotspots[] = compact( 'action', 'label', 'x', 'y', 'content', 'url', 'audio_url' );
@@ -513,7 +513,7 @@ class BW_VideoJS_Hotspot_Player {
 			$x      = (float) ( $area['x'] ?? 0 );
 			$y      = (float) ( $area['y'] ?? 0 );
 			if ( $action === 'modal' ) {
-				$content = trim( (string) ( $area['content'] ?? '' ) );
+				$content = nl2br( trim( (string) ( $area['content'] ?? '' ) ) );
 				if ( $content === '' ) continue;
 				$out[] = [ 'action' => 'modal', 'type' => 'modal', 'modal_content' => $content, 'label' => $label, 'x' => $x, 'y' => $y ];
 			} elseif ( $action === 'link' ) {
