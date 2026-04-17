@@ -57,8 +57,11 @@
 
       if (isModal) {
         el.setAttribute("type", "button");
-        el.dataset.modalContent = area.modal_content;
-        el.dataset.modalLabel = area.label || "";
+        var scriptEl = document.createElement("script");
+        scriptEl.type = "application/json";
+        scriptEl.className = "bw-hotspot-data";
+        scriptEl.textContent = JSON.stringify({ content: area.modal_content, label: area.label || "" });
+        el.appendChild(scriptEl);
       }
 
       el.dataset.index = String(index);
@@ -90,12 +93,13 @@
     var wrapper = document.createElement("div");
     wrapper.className = "bw-modal-content";
     if (label) {
-      var titleEl = document.createElement("h2");
+      var titleEl = document.createElement("div");
       titleEl.className = "bw-modal-title";
       titleEl.textContent = label;
       wrapper.appendChild(titleEl);
     }
     var bodyEl = document.createElement("div");
+    bodyEl.className = "bw-modal-text";
     bodyEl.innerHTML = html;
     wrapper.appendChild(bodyEl);
     return wrapper;
@@ -105,19 +109,22 @@
     var wrap = player.el().querySelector(".bw-hotspots");
     if (!wrap) return;
 
-    wrap.querySelectorAll("[data-modal-content]").forEach(function (el) {
+    wrap.querySelectorAll("button.bw-hotspot").forEach(function (el) {
       if (el.dataset.bound === "1") return;
       el.dataset.bound = "1";
 
       el.addEventListener("click", function (e) {
         e.preventDefault();
 
-        var content = el.dataset.modalContent || "";
+        var scriptEl = el.querySelector("script.bw-hotspot-data");
+        if (!scriptEl) return;
+        var hotspotData = parseJson(scriptEl.textContent, {});
+        var content = hotspotData.content || "";
         if (!content) return;
 
         player.pause();
 
-        var contentEl = createModalContentEl(content, el.dataset.modalLabel || "");
+        var contentEl = createModalContentEl(content, hotspotData.label || "");
 
         var modal = player.createModal(contentEl, {
           temporary: true,
